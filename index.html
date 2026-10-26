@@ -16,7 +16,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased selection:bg-emerald-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased selection:bg-emerald-500 selection:text-white font-sans">
 
   <div class="w-full max-w-sm bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl backdrop-blur-md flex flex-col gap-4">
     
@@ -26,14 +26,14 @@
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Calculadora</span>
       </div>
-      <button id="toggleHistory" title="Ver Hist??rico" class="text-xs text-slate-400 hover:text-slate-100 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-800">
+      <button id="toggleHistory" title="Ver Histórico" class="text-xs text-slate-400 hover:text-slate-100 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-800">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Hist??rico</span>
+        <span>Hist&oacute;rico</span>
       </button>
     </div>
 
     <!-- Display Screen -->
-    <div class="bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-end items-end min-h-[90px] overflow-hidden">
+    <div class="bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-end items-end min-h-[92px] overflow-hidden">
       <div id="subDisplay" class="text-xs text-slate-500 font-mono min-h-[18px] truncate max-w-full"></div>
       <div id="mainDisplay" class="text-3xl font-bold tracking-tight font-mono text-emerald-400 truncate max-w-full">0</div>
     </div>
@@ -41,11 +41,11 @@
     <!-- History Overlay (collapsible) -->
     <div id="historyPanel" class="hidden bg-slate-950/90 border border-slate-800 rounded-2xl p-3 max-h-44 overflow-y-auto text-xs font-mono flex flex-col gap-1.5">
       <div class="flex justify-between items-center text-slate-400 text-[11px] pb-1.5 border-b border-slate-800">
-        <span>??ltimas Contas</span>
+        <span>&Uacute;ltimas Contas</span>
         <button id="clearHistory" class="text-rose-400 hover:underline">Limpar</button>
       </div>
       <div id="historyList" class="flex flex-col gap-1 text-slate-200">
-        <span class="text-slate-500 italic text-center py-2">Nenhum c??lculo recente</span>
+        <span class="text-slate-500 italic text-center py-2">Nenhum c&aacute;lculo recente</span>
       </div>
     </div>
 
@@ -53,33 +53,35 @@
     <div class="grid grid-cols-4 gap-2 text-base font-medium">
       <!-- Row 1 -->
       <button class="btn-calc bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 py-3 rounded-xl font-semibold border border-rose-500/20" data-action="clear">AC</button>
-      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40" data-action="backspace">???</button>
-      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40" data-action="sqrt">???</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30" data-action="op" data-val="/">??</button>
+      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40 flex items-center justify-center" data-action="backspace" title="Apagar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+      </button>
+      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40 text-lg font-semibold" data-action="sqrt">&radic;</button>
+      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="/">&divide;</button>
 
       <!-- Row 2 -->
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="7">7</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="8">8</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="9">9</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30" data-action="op" data-val="*">??</button>
+      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="*">&times;</button>
 
       <!-- Row 3 -->
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="4">4</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="5">5</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="6">6</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30" data-action="op" data-val="-">???</button>
+      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="-">&minus;</button>
 
       <!-- Row 4 -->
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="1">1</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="2">2</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="3">3</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30" data-action="op" data-val="+">+</button>
+      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="+">+</button>
 
       <!-- Row 5 -->
-      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40" data-action="plusminus">??</button>
+      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40 text-lg font-semibold" data-action="plusminus">&plusmn;</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="0">0</button>
       <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val=".">,</button>
-      <button class="btn-calc bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold hover:brightness-110 py-3 rounded-xl shadow-lg shadow-emerald-500/20" data-action="equals">=</button>
+      <button class="btn-calc bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold hover:brightness-110 py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-lg" data-action="equals">=</button>
     </div>
 
     <!-- Quick keyboard hint -->
@@ -108,16 +110,24 @@
 
       function formatNumber(numStr) {
         if (!numStr || numStr === "Erro") return numStr;
-        const [intPart, decPart] = numStr.split(".");
+        const parts = numStr.split(".");
+        const intPart = parts[0];
+        const decPart = parts[1];
         const formattedInt = Number(intPart).toLocaleString("pt-BR");
-        return decPart !== undefined ? `${formattedInt},${decPart}` : formattedInt;
+        return decPart !== undefined ? formattedInt + "," + decPart : formattedInt;
+      }
+
+      function getOpSymbol(op) {
+        if (op === "*") return "\u00D7";
+        if (op === "/") return "\u00F7";
+        if (op === "-") return "\u2212";
+        return "+";
       }
 
       function updateDisplay() {
         mainDisplay.textContent = formatNumber(currentVal);
         if (operator && prevVal !== null) {
-          const opSymbol = operator === "*" ? "??" : operator === "/" ? "??" : operator === "-" ? "???" : "+";
-          subDisplay.textContent = `${formatNumber(prevVal)} ${opSymbol}`;
+          subDisplay.textContent = formatNumber(prevVal) + " " + getOpSymbol(operator);
         } else {
           subDisplay.textContent = "";
         }
@@ -198,8 +208,7 @@
           currentVal = "Erro";
         } else {
           const cleanResult = parseFloat(result.toFixed(10));
-          const opSymbol = op === "*" ? "??" : op === "/" ? "??" : op === "-" ? "???" : "+";
-          addHistory(`${formatNumber(String(first))} ${opSymbol} ${formatNumber(String(second))} = ${formatNumber(String(cleanResult))}`);
+          addHistory(formatNumber(String(first)) + " " + getOpSymbol(op) + " " + formatNumber(String(second)) + " = " + formatNumber(String(cleanResult)));
           currentVal = String(cleanResult);
         }
 
@@ -233,7 +242,7 @@
           currentVal = "Erro";
         } else {
           const res = parseFloat(Math.sqrt(val).toFixed(10));
-          addHistory(`???(${formatNumber(String(val))}) = ${formatNumber(String(res))}`);
+          addHistory("\u221A(" + formatNumber(String(val)) + ") = " + formatNumber(String(res)));
           currentVal = String(res);
           shouldResetDisplay = true;
         }
@@ -254,11 +263,15 @@
 
       function renderHistory() {
         if (history.length === 0) {
-          historyList.innerHTML = `<span class="text-slate-500 italic text-center py-2">Nenhum c??lculo recente</span>`;
+          historyList.innerHTML = '<span class="text-slate-500 italic text-center py-2">Nenhum c&aacute;lculo recente</span>';
           return;
         }
         historyList.innerHTML = history
-          .map(item => `<div class="p-1.5 rounded hover:bg-slate-800 cursor-pointer truncate transition-colors" onclick="window.__loadHistory('${item.split(' = ')[1]}')">${item}</div>`)
+          .map(function(item) {
+            var parts = item.split(" = ");
+            var resultVal = parts[1] || "";
+            return '<div class="p-1.5 rounded hover:bg-slate-800 cursor-pointer truncate transition-colors" onclick="window.__loadHistory('' + resultVal + '')">' + item + '</div>';
+          })
           .join("");
       }
 
@@ -270,10 +283,10 @@
       };
 
       // Button clicks
-      document.querySelectorAll(".btn-calc").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const val = btn.getAttribute("data-val");
-          const action = btn.getAttribute("data-action");
+      document.querySelectorAll(".btn-calc").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          var val = btn.getAttribute("data-val");
+          var action = btn.getAttribute("data-action");
 
           if (val) {
             if (val === ".") inputDecimal();
@@ -292,7 +305,7 @@
       });
 
       // Keyboard support
-      window.addEventListener("keydown", (e) => {
+      window.addEventListener("keydown", function(e) {
         if (e.key >= "0" && e.key <= "9") inputDigit(e.key);
         else if (e.key === "." || e.key === ",") inputDecimal();
         else if (e.key === "+" || e.key === "-" || e.key === "*" || e.key === "/") handleOperator(e.key);
@@ -302,10 +315,10 @@
       });
 
       // History Toggle & Clear
-      toggleHistoryBtn.addEventListener("click", () => {
+      toggleHistoryBtn.addEventListener("click", function() {
         historyPanel.classList.toggle("hidden");
       });
-      clearHistoryBtn.addEventListener("click", () => {
+      clearHistoryBtn.addEventListener("click", function() {
         history.length = 0;
         renderHistory();
       });
