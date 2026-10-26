@@ -3,117 +3,478 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora Interativa</title>
+  <title>Rune Systems - Calculadora</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700;900&display=swap" rel="stylesheet">
+  
   <style>
-    .btn-calc {
-      transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    :root {
+      --bg-obsidian: #080C10;
+      --bg-surface: #0E141B;
+      --bg-card: rgba(18, 26, 36, 0.78);
+      --rune-cyan: #00E5B8;
+      --rune-cyan-glow: rgba(0, 229, 184, 0.45);
+      --border-subtle: rgba(0, 229, 184, 0.18);
+      --drakkar-teal: #164654;
+    }
+
+    body {
+      background-color: var(--bg-obsidian);
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Vagalumes & Telemetria Canvas */
+    #rune-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Grid de Ruído Rúnico */
+    .rune-noise-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 2;
+      background-image: radial-gradient(rgba(0, 229, 184, 0.04) 1px, transparent 0);
+      background-size: 28px 28px;
+    }
+
+    /* Botões Rúnicos */
+    .btn-rune {
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
       -webkit-user-select: none;
+      position: relative;
+      overflow: hidden;
     }
-    .btn-calc:active {
-      transform: scale(0.95);
+
+    .btn-rune:active {
+      transform: scale(0.94);
+    }
+
+    .btn-rune-num {
+      background: rgba(22, 70, 84, 0.25);
+      color: #F1F5F9;
+      border: 1px solid rgba(0, 229, 184, 0.16);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-rune-num:hover {
+      background: rgba(0, 229, 184, 0.14);
+      border-color: rgba(0, 229, 184, 0.45);
+      box-shadow: 0 0 16px rgba(0, 229, 184, 0.22);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-rune-op {
+      background: rgba(0, 229, 184, 0.12);
+      color: #00E5B8;
+      border: 1px solid rgba(0, 229, 184, 0.35);
+      font-weight: 700;
+    }
+
+    .btn-rune-op:hover {
+      background: rgba(0, 229, 184, 0.24);
+      border-color: #00E5B8;
+      box-shadow: 0 0 20px rgba(0, 229, 184, 0.4);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-rune-ac {
+      background: rgba(244, 63, 94, 0.15);
+      color: #FB7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      font-weight: 700;
+    }
+
+    .btn-rune-ac:hover {
+      background: rgba(244, 63, 94, 0.28);
+      border-color: #F43F5E;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-rune-equal {
+      background: linear-gradient(135deg, #00E5B8, #00B4A0);
+      color: #080C10;
+      font-weight: 900;
+      box-shadow: 0 4px 22px rgba(0, 229, 184, 0.45);
+      border: 1px solid #52FFD5;
+    }
+
+    .btn-rune-equal:hover {
+      background: linear-gradient(135deg, #38EFC6, #00D4B2);
+      box-shadow: 0 6px 30px rgba(0, 229, 184, 0.7);
+      transform: translateY(-2px);
+    }
+
+    /* Glow de borda do card */
+    .rune-card-glow {
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
+                  0 0 40px rgba(0, 229, 184, 0.12),
+                  inset 0 1px 0 rgba(0, 229, 184, 0.3);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased selection:bg-emerald-500 selection:text-white font-sans">
+<body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#00E5B8] selection:text-[#080C10] relative">
 
-  <div class="w-full max-w-sm bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl backdrop-blur-md flex flex-col gap-4">
+  <!-- Canvas dos Vagalumes Mágicos & Telemetria -->
+  <canvas id="rune-canvas"></canvas>
+
+  <!-- Overlay de Ruído Sutil -->
+  <div class="rune-noise-overlay"></div>
+
+  <!-- Container Principal da Calculadora -->
+  <main class="w-full max-w-sm bg-[rgba(14,20,27,0.85)] border border-[rgba(0,229,184,0.25)] rounded-3xl p-6 rune-card-glow backdrop-blur-xl flex flex-col gap-4 relative z-10">
     
-    <!-- Top Bar: Title & History Toggle -->
-    <div class="flex items-center justify-between px-1">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Calculadora</span>
+    <!-- Header com Logo Oficial Rune Systems -->
+    <header class="flex items-center justify-between border-b border-[rgba(0,229,184,0.15)] pb-3">
+      <div class="flex items-center gap-2.5">
+        <!-- SVG Monograma Rúnico -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 110" class="w-8 h-8 filter drop-shadow-[0_0_8px_rgba(0,229,184,0.6)]">
+          <defs>
+            <linearGradient id="runeCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00F5C8" />
+              <stop offset="100%" stop-color="#00D4B2" />
+            </linearGradient>
+            <linearGradient id="drakkarTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#24788C" />
+              <stop offset="100%" stop-color="#0E414E" />
+            </linearGradient>
+          </defs>
+          <path d="M 22 48 L 10 58 L 22 68" stroke="url(#runeCyan)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M 10 76 C 10 90 24 96 38 96 L 74 96 C 88 96 100 90 100 76 C 96 84 86 88 72 88 L 36 88 C 22 88 14 84 10 76 Z" fill="url(#drakkarTeal)" />
+          <path d="M 33 24 L 33 90" stroke="url(#runeCyan)" stroke-width="8" stroke-linecap="round" />
+          <path d="M 33 24 L 66 40 L 33 56" stroke="url(#runeCyan)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M 44 51 L 80 88" stroke="url(#runeCyan)" stroke-width="8" stroke-linecap="round" />
+          <path d="M 84 52 L 89 38" stroke="url(#runeCyan)" stroke-width="5" stroke-linecap="round" />
+          <path d="M 92 40 L 102 48 L 92 56" stroke="url(#runeCyan)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+
+        <div>
+          <div class="flex items-center gap-1.5 leading-none">
+            <span class="font-black tracking-wider text-base text-white">RUNE</span>
+            <span class="font-bold tracking-widest text-[11px] text-[#00E5B8] uppercase">SYSTEMS</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono tracking-wider">CALCULATOR v2.0</span>
+        </div>
       </div>
-      <button id="toggleHistory" title="Ver Histórico" class="text-xs text-slate-400 hover:text-slate-100 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-800">
+
+      <!-- Botão de Histórico -->
+      <button id="toggleHistory" title="Ver Histórico de Cálculos" class="text-xs text-slate-300 hover:text-[#00E5B8] transition-colors flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[rgba(22,70,84,0.3)] hover:bg-[rgba(0,229,184,0.15)] border border-[rgba(0,229,184,0.2)]">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Hist&oacute;rico</span>
       </button>
-    </div>
+    </header>
 
-    <!-- Display Screen -->
-    <div class="bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-end items-end min-h-[92px] overflow-hidden">
-      <div id="subDisplay" class="text-xs text-slate-500 font-mono min-h-[18px] truncate max-w-full"></div>
-      <div id="mainDisplay" class="text-3xl font-bold tracking-tight font-mono text-emerald-400 truncate max-w-full">0</div>
-    </div>
+    <!-- Display Obsidian Neon -->
+    <section class="bg-[#080C10] border border-[rgba(0,229,184,0.25)] rounded-2xl p-4 flex flex-col justify-end items-end min-h-[96px] overflow-hidden shadow-inner relative">
+      <div class="absolute top-2 left-3 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#00E5B8] animate-ping"></span>
+        <span class="text-[9px] uppercase tracking-widest text-[rgba(0,229,184,0.6)] font-mono">TELEMETRY ON</span>
+      </div>
+      <div id="subDisplay" class="text-xs text-slate-400 font-mono min-h-[18px] truncate max-w-full"></div>
+      <div id="mainDisplay" class="text-3xl font-bold tracking-tight font-mono text-[#00E5B8] truncate max-w-full drop-shadow-[0_0_10px_rgba(0,229,184,0.5)]">0</div>
+    </section>
 
-    <!-- History Overlay (collapsible) -->
-    <div id="historyPanel" class="hidden bg-slate-950/90 border border-slate-800 rounded-2xl p-3 max-h-44 overflow-y-auto text-xs font-mono flex flex-col gap-1.5">
+    <!-- Histórico de Cálculos (painel retrátil) -->
+    <section id="historyPanel" class="hidden bg-[#080C10]/95 border border-[rgba(0,229,184,0.3)] rounded-2xl p-3 max-h-48 overflow-y-auto text-xs font-mono flex flex-col gap-1.5 shadow-2xl">
       <div class="flex justify-between items-center text-slate-400 text-[11px] pb-1.5 border-b border-slate-800">
-        <span>&Uacute;ltimas Contas</span>
-        <button id="clearHistory" class="text-rose-400 hover:underline">Limpar</button>
+        <span class="text-[#00E5B8]">&Uacute;ltimos C&aacute;lculos</span>
+        <button id="clearHistory" class="text-rose-400 hover:text-rose-300 hover:underline">Limpar</button>
       </div>
       <div id="historyList" class="flex flex-col gap-1 text-slate-200">
         <span class="text-slate-500 italic text-center py-2">Nenhum c&aacute;lculo recente</span>
       </div>
-    </div>
+    </section>
 
-    <!-- Keypad Grid -->
+    <!-- Teclado de Botões com Estilo Rune -->
     <div class="grid grid-cols-4 gap-2 text-base font-medium">
-      <!-- Row 1 -->
-      <button class="btn-calc bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 py-3 rounded-xl font-semibold border border-rose-500/20" data-action="clear">AC</button>
-      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40 flex items-center justify-center" data-action="backspace" title="Apagar">
+      <!-- Linha 1 -->
+      <button class="btn-rune btn-rune-ac py-3 rounded-xl" data-action="clear">AC</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl flex items-center justify-center" data-action="backspace" title="Apagar">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
       </button>
-      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40 text-lg font-semibold" data-action="sqrt">&radic;</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="/">&divide;</button>
+      <button class="btn-rune btn-rune-op py-3 rounded-xl" data-action="sqrt">&radic;</button>
+      <button class="btn-rune btn-rune-op py-3 rounded-xl text-lg" data-action="op" data-val="/">&divide;</button>
 
-      <!-- Row 2 -->
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="7">7</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="8">8</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="9">9</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="*">&times;</button>
+      <!-- Linha 2 -->
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="7">7</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="8">8</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="9">9</button>
+      <button class="btn-rune btn-rune-op py-3 rounded-xl text-lg" data-action="op" data-val="*">&times;</button>
 
-      <!-- Row 3 -->
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="4">4</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="5">5</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="6">6</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="-">&minus;</button>
+      <!-- Linha 3 -->
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="4">4</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="5">5</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="6">6</button>
+      <button class="btn-rune btn-rune-op py-3 rounded-xl text-lg" data-action="op" data-val="-">&minus;</button>
 
-      <!-- Row 4 -->
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="1">1</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="2">2</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="3">3</button>
-      <button class="btn-calc bg-emerald-600/90 text-white hover:bg-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/30 text-lg" data-action="op" data-val="+">+</button>
+      <!-- Linha 4 -->
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="1">1</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="2">2</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="3">3</button>
+      <button class="btn-rune btn-rune-op py-3 rounded-xl text-lg" data-action="op" data-val="+">+</button>
 
-      <!-- Row 5 -->
-      <button class="btn-calc bg-slate-800/80 text-slate-200 hover:bg-slate-700 py-3 rounded-xl border border-slate-700/40 text-lg font-semibold" data-action="plusminus">&plusmn;</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val="0">0</button>
-      <button class="btn-calc bg-slate-800/60 text-slate-100 hover:bg-slate-700/80 py-3 rounded-xl border border-slate-700/30" data-val=".">,</button>
-      <button class="btn-calc bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold hover:brightness-110 py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-lg" data-action="equals">=</button>
+      <!-- Linha 5 -->
+      <button class="btn-rune btn-rune-num py-3 rounded-xl font-semibold" data-action="plusminus">&plusmn;</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val="0">0</button>
+      <button class="btn-rune btn-rune-num py-3 rounded-xl" data-val=".">,</button>
+      <button class="btn-rune btn-rune-equal py-3 rounded-xl text-lg" data-action="equals">=</button>
     </div>
 
-    <!-- Quick keyboard hint -->
-    <div class="text-[11px] text-slate-500 text-center flex items-center justify-center gap-1">
-      <span>Teclado:</span>
-      <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">0-9</kbd>
-      <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">Enter</kbd>
-      <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">Esc</kbd>
-    </div>
-  </div>
+    <!-- Rodapé de Telemetria e Teclado -->
+    <footer class="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1.5 pt-1 border-t border-[rgba(0,229,184,0.1)]">
+      <span class="text-slate-500">Atalhos:</span>
+      <kbd class="px-1.5 py-0.5 rounded bg-[#080C10] border border-[rgba(0,229,184,0.25)] text-[#00E5B8] font-mono text-[10px]">0-9</kbd>
+      <kbd class="px-1.5 py-0.5 rounded bg-[#080C10] border border-[rgba(0,229,184,0.25)] text-[#00E5B8] font-mono text-[10px]">Enter</kbd>
+      <kbd class="px-1.5 py-0.5 rounded bg-[#080C10] border border-[rgba(0,229,184,0.25)] text-[#00E5B8] font-mono text-[10px]">Esc</kbd>
+    </footer>
+  </main>
 
+  <!-- Script da Calculadora e Vagalumes Rúnicos -->
   <script>
-    (function () {
-      let currentVal = "0";
-      let prevVal = null;
-      let operator = null;
-      let shouldResetDisplay = false;
-      const history = [];
+    /* ==============================================================
+     * RUNE SYSTEMS - Interactive Fireflies & Telemetry Canvas Engine
+     * ============================================================== */
+    (function initRuneParticles() {
+      var canvas = document.getElementById('rune-canvas');
+      if (!canvas) return;
 
-      const mainDisplay = document.getElementById("mainDisplay");
-      const subDisplay = document.getElementById("subDisplay");
-      const historyPanel = document.getElementById("historyPanel");
-      const historyList = document.getElementById("historyList");
-      const toggleHistoryBtn = document.getElementById("toggleHistory");
-      const clearHistoryBtn = document.getElementById("clearHistory");
+      var ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      var width = (canvas.width = window.innerWidth);
+      var height = (canvas.height = window.innerHeight);
+
+      window.addEventListener('resize', function () {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      var mouse = { x: null, y: null, radius: 180, active: false };
+      var mouseTimeout;
+
+      window.addEventListener('mousemove', function (e) {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        mouse.active = true;
+        clearTimeout(mouseTimeout);
+        mouseTimeout = setTimeout(function () {
+          mouse.active = false;
+        }, 3000);
+
+        if (Math.random() > 0.4) {
+          sparkles.push({
+            x: e.clientX + (Math.random() - 0.5) * 16,
+            y: e.clientY + (Math.random() - 0.5) * 16,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5 - 0.5,
+            radius: Math.random() * 2.2 + 0.9,
+            alpha: 1,
+            decay: 0.02 + Math.random() * 0.025
+          });
+        }
+      });
+
+      window.addEventListener('mouseleave', function () {
+        mouse.x = null;
+        mouse.y = null;
+        mouse.active = false;
+      });
+
+      // Paleta Rúnica
+      var colors = [
+        'rgba(0, 229, 184, ',   // Ciano Rúnico Principal
+        'rgba(22, 190, 180, ',  // Drakkar Cyan
+        'rgba(148, 240, 225, ', // Brilho Mágico Claro
+        'rgba(255, 255, 255, '  // Centelha Rúnica
+      ];
+
+      var runes = ['\u16B1', '\u16A2', '\u16BE', '\u16D6', '\u16DF', '\u16CF', '\u16D2', '\u16A8'];
+
+      function Particle() {
+        this.reset();
+      }
+
+      Particle.prototype.reset = function () {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.baseRadius = Math.random() * 2.0 + 0.8;
+        this.radius = this.baseRadius;
+        this.colorPrefix = colors[Math.floor(Math.random() * colors.length)];
+        this.vx = (Math.random() - 0.5) * 0.7;
+        this.vy = (Math.random() - 0.5) * 0.7 - 0.15;
+        this.pulse = Math.random() * Math.PI * 2;
+        this.pulseSpeed = 0.025 + Math.random() * 0.035;
+        this.isRune = Math.random() < 0.2;
+        this.runeChar = runes[Math.floor(Math.random() * runes.length)];
+        this.alpha = 0.25 + Math.random() * 0.6;
+      };
+
+      Particle.prototype.update = function () {
+        this.pulse += this.pulseSpeed;
+        var pulseFactor = 0.5 + Math.sin(this.pulse) * 0.45;
+        this.currentAlpha = Math.max(0.12, Math.min(1, this.alpha * pulseFactor));
+
+        if (mouse.active && mouse.x !== null && mouse.y !== null) {
+          var dx = mouse.x - this.x;
+          var dy = mouse.y - this.y;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < mouse.radius) {
+            var force = (1 - dist / mouse.radius) * 2.5;
+            var angle = Math.atan2(dy, dx);
+            this.vx += Math.cos(angle) * force * 0.35;
+            this.vy += Math.sin(angle) * force * 0.35;
+            this.currentAlpha = Math.min(1, this.currentAlpha + 0.45);
+            this.radius = this.baseRadius * 1.5;
+          } else {
+            this.radius = this.baseRadius;
+          }
+        } else {
+          this.radius = this.baseRadius;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        this.vx *= 0.96;
+        this.vy *= 0.96;
+
+        this.vx += (Math.random() - 0.5) * 0.04;
+        this.vy += (Math.random() - 0.5) * 0.04;
+
+        if (this.x < -30) this.x = width + 30;
+        if (this.x > width + 30) this.x = -30;
+        if (this.y < -30) this.y = height + 30;
+        if (this.y > height + 30) this.y = -30;
+      };
+
+      Particle.prototype.draw = function () {
+        if (this.isRune) {
+          ctx.save();
+          ctx.font = Math.floor(this.radius * 6 + 11) + 'px sans-serif';
+          ctx.fillStyle = this.colorPrefix + this.currentAlpha + ')';
+          ctx.shadowColor = '#00E5B8';
+          ctx.shadowBlur = 10;
+          ctx.fillText(this.runeChar, this.x, this.y);
+          ctx.restore();
+        } else {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = this.colorPrefix + this.currentAlpha + ')';
+          ctx.shadowColor = '#00E5B8';
+          ctx.shadowBlur = 12;
+          ctx.fill();
+        }
+      };
+
+      var particleCount = Math.min(70, Math.floor((width * height) / 16000));
+      var particles = [];
+      for (var i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+
+      var sparkles = [];
+
+      function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Linhas de telemetria entre partículas próximas
+        var maxDist = 100;
+        for (var i = 0; i < particles.length; i++) {
+          for (var j = i + 1; j < particles.length; j++) {
+            var dx = particles[i].x - particles[j].x;
+            var dy = particles[i].y - particles[j].y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < maxDist) {
+              var lineAlpha = (1 - dist / maxDist) * 0.18;
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = 'rgba(0, 229, 184, ' + lineAlpha + ')';
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Vagalumes
+        for (var p = 0; p < particles.length; p++) {
+          particles[p].update();
+          particles[p].draw();
+        }
+
+        // Faíscas no rastro do cursor
+        for (var s = sparkles.length - 1; s >= 0; s--) {
+          var sp = sparkles[s];
+          sp.x += sp.vx;
+          sp.y += sp.vy;
+          sp.alpha -= sp.decay;
+
+          if (sp.alpha <= 0) {
+            sparkles.splice(s, 1);
+            continue;
+          }
+
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, sp.radius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0, 229, 184, ' + sp.alpha + ')';
+          ctx.shadowColor = '#00E5B8';
+          ctx.shadowBlur = 8;
+          ctx.fill();
+        }
+
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    })();
+
+    /* ==============================================================
+     * CALCULATOR LOGIC ENGINE
+     * ============================================================== */
+    (function initCalculator() {
+      var currentVal = "0";
+      var prevVal = null;
+      var operator = null;
+      var shouldResetDisplay = false;
+      var history = [];
+
+      var mainDisplay = document.getElementById("mainDisplay");
+      var subDisplay = document.getElementById("subDisplay");
+      var historyPanel = document.getElementById("historyPanel");
+      var historyList = document.getElementById("historyList");
+      var toggleHistoryBtn = document.getElementById("toggleHistory");
+      var clearHistoryBtn = document.getElementById("clearHistory");
 
       function formatNumber(numStr) {
         if (!numStr || numStr === "Erro") return numStr;
-        const parts = numStr.split(".");
-        const intPart = parts[0];
-        const decPart = parts[1];
-        const formattedInt = Number(intPart).toLocaleString("pt-BR");
+        var parts = numStr.split(".");
+        var intPart = parts[0];
+        var decPart = parts[1];
+        var formattedInt = Number(intPart).toLocaleString("pt-BR");
         return decPart !== undefined ? formattedInt + "," + decPart : formattedInt;
       }
 
@@ -158,7 +519,7 @@
 
       function handleOperator(nextOp) {
         if (currentVal === "Erro") return;
-        const inputValue = parseFloat(currentVal);
+        var inputValue = parseFloat(currentVal);
 
         if (operator && shouldResetDisplay) {
           operator = nextOp;
@@ -169,7 +530,7 @@
         if (prevVal === null) {
           prevVal = String(inputValue);
         } else if (operator) {
-          const result = calculate(parseFloat(prevVal), inputValue, operator);
+          var result = calculate(parseFloat(prevVal), inputValue, operator);
           if (result === "Erro") {
             currentVal = "Erro";
             prevVal = null;
@@ -199,15 +560,15 @@
       function handleEquals() {
         if (operator === null || prevVal === null || currentVal === "Erro") return;
 
-        const first = parseFloat(prevVal);
-        const second = parseFloat(currentVal);
-        const op = operator;
-        const result = calculate(first, second, op);
+        var first = parseFloat(prevVal);
+        var second = parseFloat(currentVal);
+        var op = operator;
+        var result = calculate(first, second, op);
 
         if (result === "Erro") {
           currentVal = "Erro";
         } else {
-          const cleanResult = parseFloat(result.toFixed(10));
+          var cleanResult = parseFloat(result.toFixed(10));
           addHistory(formatNumber(String(first)) + " " + getOpSymbol(op) + " " + formatNumber(String(second)) + " = " + formatNumber(String(cleanResult)));
           currentVal = String(cleanResult);
         }
@@ -237,11 +598,11 @@
 
       function handleSqrt() {
         if (currentVal === "Erro") return;
-        const val = parseFloat(currentVal);
+        var val = parseFloat(currentVal);
         if (val < 0) {
           currentVal = "Erro";
         } else {
-          const res = parseFloat(Math.sqrt(val).toFixed(10));
+          var res = parseFloat(Math.sqrt(val).toFixed(10));
           addHistory("\u221A(" + formatNumber(String(val)) + ") = " + formatNumber(String(res)));
           currentVal = String(res);
           shouldResetDisplay = true;
@@ -270,7 +631,7 @@
           .map(function(item) {
             var parts = item.split(" = ");
             var resultVal = parts[1] || "";
-            return '<div class="p-1.5 rounded hover:bg-slate-800 cursor-pointer truncate transition-colors" onclick="window.__loadHistory('' + resultVal + '')">' + item + '</div>';
+            return '<div class="p-1.5 rounded hover:bg-[rgba(0,229,184,0.15)] cursor-pointer truncate transition-colors text-slate-300 hover:text-white" onclick="window.__loadHistory('' + resultVal + '')">' + item + '</div>';
           })
           .join("");
       }
@@ -283,7 +644,7 @@
       };
 
       // Button clicks
-      document.querySelectorAll(".btn-calc").forEach(function(btn) {
+      document.querySelectorAll(".btn-rune").forEach(function(btn) {
         btn.addEventListener("click", function() {
           var val = btn.getAttribute("data-val");
           var action = btn.getAttribute("data-action");
